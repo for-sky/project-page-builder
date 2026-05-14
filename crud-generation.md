@@ -107,7 +107,7 @@ src/
 └── views/
     └── [module]/                 # e.g. push/
         ├── index.vue             # Main page, must generate
-        └── modules/              # Sub-component directory
+        └── components/              # Sub-component directory
             ├── form.vue          # Form component, must generate
             └── data.ts           # Data config, must generate
 ```
