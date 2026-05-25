@@ -1,7 +1,7 @@
 # Table 使用示例模板
 
 ## 模板用途
-用于生成 CRUD 页面的 Table 使用示例模板
+用于生成 CRUD 页面的 Table 使用示例模板，主要要遵守rules.md中的规则。
 
 ## 1. 基础表格
 
@@ -513,3 +513,70 @@ const [Grid, gridApi] = useVbenVxeGrid({
 });
 </script>
 ```
+
+## 14. 多选表格
+
+```vue
+<template>
+  <Grid>
+    <template #batch-toolbar>
+      <t-button variant="outline" @click="handleBatchExport">导出</t-button>
+      <t-button variant="outline" @click="handleBatchDelete">删除</t-button>
+    </template>
+  </Grid>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+
+import { message } from '@/adapter/tdesign';
+import { useVbenVxeGrid } from '@/adapter/vxe-table';
+
+interface RowType {
+  id: string
+  name: string
+  status: string
+}
+
+const selectedCount = ref(0);
+
+const [Grid, gridApi] = useVbenVxeGrid({
+  gridOptions: {
+    columns: [
+      { type: 'checkbox', width: 46, fixed: 'left' },
+      { field: 'name', title: 'Name' },
+      { field: 'status', title: 'Status' },
+    ],
+    proxyConfig: {
+      ajax: {
+        query: async ({ page }) => {
+          return await fetchTableData({
+            page: page.currentPage,
+            pageSize: page.pageSize,
+          });
+        },
+      },
+    },
+  },
+  gridEvents: {
+    checkboxChange: () => {
+      selectedCount.value = gridApi.grid?.getCheckboxRecords().length ?? 0;
+    },
+    checkboxAll: () => {
+      selectedCount.value = gridApi.grid?.getCheckboxRecords().length ?? 0;
+    },
+  },
+});
+
+const handleBatchExport = () => {
+  const records = gridApi.grid?.getCheckboxRecords() ?? [];
+  message.info(`导出 ${records.length} 条记录`);
+};
+
+const handleBatchDelete = () => {
+  const records = gridApi.grid?.getCheckboxRecords() ?? [];
+  message.info(`删除 ${records.length} 条记录`);
+};
+</script>
+```
+

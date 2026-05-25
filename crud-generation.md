@@ -32,8 +32,9 @@
 
 > **"接口数据从哪里获取？"**
 > - 选项 A：从 Apifox MCP 获取（用户提供项目名和接口名）
-> - 选项 B：自定义接口（AI 根据需求自行定义，但需用户确认）
-> - 选项 C：用户直接提供接口信息
+> - 选项 B：使用 backend-mock 模拟数据（在 `apps/backend-mock` 中创建 mock 接口）
+> - 选项 C：自定义接口（AI 根据需求自行定义，但需用户确认）
+> - 选项 D：用户直接提供接口信息
 
 #### 2.2 从 Apifox MCP 获取接口
 
@@ -47,9 +48,67 @@
 6. 调用 `mcp_apifox-new-mcp_readEntityDetails` 读取每个接口的完整详情
 7. 根据接口详情生成 `types.ts` 中的请求/响应类型
 
-**如果 Apifox MCP 工具不可用（连接失败、无权限等）**，回退到自定义接口模式（步骤 2.3），并告知用户。
+**如果 Apifox MCP 工具不可用（连接失败、无权限等）**，回退到自定义接口模式（步骤 2.4），并告知用户。
 
-#### 2.3 自定义接口
+#### 2.3 使用 backend-mock 模拟数据
+
+如果用户选择使用 backend-mock 模拟数据：
+
+项目已有 `apps/backend-mock` 目录，基于 Nitro（h3）构建的 mock 服务，随 Vite 开发服务器自动启动，无需手动运行。
+
+**生成步骤：**
+
+1. **确定 mock 接口清单**：根据步骤 1 收集的需求，列出需要的 CRUD 接口
+2. **在 `apps/backend-mock/api/` 下创建对应的路由文件**：
+
+   ```
+   apps/backend-mock/api/
+   └── [module]/
+       ├── list.get.ts        # 查询列表（GET）
+       ├── detail.get.ts      # 查询详情（GET）
+       ├── create.post.ts     # 新增（POST）
+       ├── update.put.ts      # 修改（PUT）
+       └── delete.delete.ts   # 删除（DELETE）
+   ```
+
+3. **编写 mock 数据和路由处理函数**：
+   - 参考 `apps/backend-mock/utils/response.ts` 中的 `useResponseSuccess` / `useResponseError` 工具函数
+   - 参考 `apps/backend-mock/utils/jwt-utils.ts` 中的 `verifyAccessToken` 进行鉴权（如果需要）
+   - 参考 `apps/backend-mock/api/admin-api/system/dept/` 目录下的现有 CRUD 示例
+   - Mock 数据可放在路由文件内，或抽取到 `apps/backend-mock/utils/` 目录
+
+4. **在 `src/api/[module]/index.ts` 中封装请求方法**，请求路径对应 mock 路由
+
+5. 使用 `AskUserQuestion` 展示 mock 接口清单，让用户确认或修改
+
+**Mock 路由文件模板（以 list.get.ts 为例）：**
+
+```ts
+import { defineEventHandler, getQuery } from 'h3';
+import { verifyAccessToken } from '~/utils/jwt-utils';
+import { unAuthorizedResponse, useResponseSuccess } from '~/utils/response';
+
+export default defineEventHandler(async (event) => {
+  const userinfo = verifyAccessToken(event);
+  if (!userinfo) {
+    return unAuthorizedResponse(event);
+  }
+
+  const query = getQuery(event);
+  const { page = 1, pageSize = 10 } = query;
+
+  // TODO: 替换为实际的 mock 数据
+  const items: any[] = [];
+  return useResponseSuccess({
+    items,
+    total: items.length,
+  });
+});
+```
+
+用户确认后，同时生成 mock 路由文件和前端 `types.ts` 中的类型定义。
+
+#### 2.4 自定义接口
 
 如果用户选择自定义接口：
 
@@ -58,7 +117,7 @@
 3. 使用 `AskUserQuestion` 展示接口清单，让用户确认或修改
 4. 用户确认后，根据接口定义生成 `types.ts` 中的类型
 
-#### 2.4 用户直接提供
+#### 2.5 用户直接提供
 
 如果用户直接提供了接口信息（如 Swagger JSON、接口文档等），直接使用用户提供的数据生成类型。
 

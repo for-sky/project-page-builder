@@ -12,11 +12,6 @@
 
 如果现有组件封装无法满足需求，可以使用原生组件或自行封装组件。框架提供的组件并非强制，按需使用即可。
 
-## 适配器
-
-表格基于 vxe-table 实现，因此可使用 vxe-table 的全部能力。针对不同 UI 框架，我们提供了适配器以提升兼容性。
-
-**具体适配器配置和代码示例请参考**：`assets/table-adapter-template.md`
 
 ## 搜索表单
 
@@ -32,12 +27,7 @@
 const [Grid] = useVbenVxeGrid({
   formOptions: {},
   gridOptions: {},
-  // 完全移除分隔线
-  separator: false,
-  // 也可以使用以下代码移除分隔线
-  // separator: { show: false },
-  // 或使用以下代码修改分隔线颜色
-  // separator: { backgroundColor: 'rgba(100,100,0,0.5)' },
+  gridEvents: {},
 });
 ```
 
@@ -51,12 +41,9 @@ import { useVbenVxeGrid } from '@/adapter/vxe-table';
 
 // Grid 是表格组件
 // gridApi 是表格方法
+// gridOptions 表格配置已经内置了配置，无需额外配置，如果用户单独要求可根据要求配置
 const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions: {
-    toolbarConfig: {
-      refresh: true,
-      custom: true,
-    },
   },
   formOptions: {},
   gridEvents: {},
